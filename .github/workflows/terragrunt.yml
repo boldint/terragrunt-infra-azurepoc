@@ -1,6 +1,9 @@
 name: Terragrunt example workflow
 
-on: [push]
+on:
+  push:
+    branches:
+      - AP-1
 
 jobs:
   example:
