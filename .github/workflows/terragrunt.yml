@@ -1,0 +1,17 @@
+name: Terragrunt example workflow
+
+on: [push]
+
+jobs:
+  example:
+    name: Example Terragrunt interaction
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Terragrunt
+        uses: autero1/action-terragrunt@v1.1.0
+        with:
+          terragrunt_version: 0.21.13
+      - name: Interact with Terragrunt
+        run: terragrunt --version
