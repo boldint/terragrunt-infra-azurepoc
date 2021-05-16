@@ -6,8 +6,8 @@ on:
       - AP-1
 
 jobs:
-  example:
-    name: Example Terragrunt interaction
+  IaC:
+    name: Terragrunt Run
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,5 +16,7 @@ jobs:
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: 0.28.4
-      - name: Interact with Terragrunt
-        run: terragrunt --version
+      - name: Terragrunt Validate
+        run: terragrunt run-all validate
+      - name: Terragrunt Plan
+        run: terragrunt run-all plan
