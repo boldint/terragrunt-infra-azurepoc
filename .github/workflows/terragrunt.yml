@@ -16,5 +16,7 @@ jobs:
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: 0.28.4
+      - name: Terragrunt Validate
+        run: terragrunt run-all validate
       - name: Terragrunt Plan
         run: terragrunt run-all plan
