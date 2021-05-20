@@ -10,7 +10,7 @@ jobs:
     name: Terragrunt Run
     runs-on: ubuntu-latest
     env:
-      TFE_TOKEN: ${{ secret.TF_API_TOKEN }}
+      TFE_TOKEN: ${{ secrets.TF_API_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
