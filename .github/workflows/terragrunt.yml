@@ -26,7 +26,6 @@ jobs:
           fileOutput: ','
       - name: Get Base Folder
         run: |
-          ls -la $HOME/
           cat $HOME/files.csv
       - name: Terragrunt Validate
         run: terragrunt run-all validate
