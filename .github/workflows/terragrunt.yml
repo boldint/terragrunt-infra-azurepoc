@@ -20,6 +20,12 @@ jobs:
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: 0.28.4
+      - id: file_changes
+        uses: trilom/file-changes-action@v1.2.4
+        fileOutput: 'csv'
+      - name: Get Base Folder
+        run: |
+          cat $HOME/files.csv
       - name: Terragrunt Validate
         run: terragrunt run-all validate
       - name: Terragrunt Plan
