@@ -22,7 +22,8 @@ jobs:
           terragrunt_version: 0.28.4
       - id: file_changes
         uses: trilom/file-changes-action@v1.2.4
-        fileOutput: 'csv'
+        with:
+          fileOutput: 'csv'
       - name: Get Base Folder
         run: |
           cat $HOME/files.csv
