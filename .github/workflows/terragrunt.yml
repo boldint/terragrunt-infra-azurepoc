@@ -23,9 +23,10 @@ jobs:
       - id: file_changes
         uses: trilom/file-changes-action@v1.2.4
         with:
-          fileOutput: 'csv'
+          fileOutput: ','
       - name: Get Base Folder
         run: |
+          ls -la $HOME/
           cat $HOME/files.csv
       - name: Terragrunt Validate
         run: terragrunt run-all validate
