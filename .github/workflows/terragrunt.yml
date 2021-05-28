@@ -40,3 +40,4 @@ jobs:
         name: Terragrunt Plan
         id: terragrunt_plan
         run: terragrunt run-all plan ${{ steps.terragrunt_folder.outputs.name }} -detailed-exitcode
+        continue-on-error: true
