@@ -26,13 +26,13 @@ jobs:
           fileOutput: ','
       - name: Get Terragrunt Changed Environments
         id: terragrunt_num_envs
-        run: echo "::set-output name=number::$(grep -v '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | wc-l)"
+        run: echo "::set-output name=number::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | wc -l)"
       - name: Get Terragrunt Changed Regions
         id: terragrunt_num_regions
-        run: echo "::set-output name=number::$(grep -v '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-2 | uniq | wc-l)"
+        run: echo "::set-output name=number::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-2 | uniq | wc -l)"
       - name: Get Terragrunt Run Folder
         id: terragrunt_folder
-        run: echo "::set-output name=name::$(grep -v '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | sort -n)"
+        run: echo "::set-output name=name::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | sort -n)"
       - if: steps.terragrunt_num_envs.outputs.number <= 1
         name: Terragrunt Validate
         run: terragrunt run-all validate ${{ steps.terragrunt_folder.outputs.name }}
