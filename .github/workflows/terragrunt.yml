@@ -24,10 +24,19 @@ jobs:
         uses: trilom/file-changes-action@v1.2.4
         with:
           fileOutput: ','
-      - name: Get Base Folder
-        run: |
-          cat $HOME/files.csv
-      - name: Terragrunt Validate
-        run: terragrunt run-all validate
-      - name: Terragrunt Plan
-        run: terragrunt run-all plan
+      - name: Get Terragrunt Changed Environments
+        id: terragrunt_num_envs
+        run: echo "::set-output name=number::$(grep -v '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | wc-l)"
+      - name: Get Terragrunt Changed Regions
+        id: terragrunt_num_regions
+        run: echo "::set-output name=number::$(grep -v '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-2 | uniq | wc-l)"
+      - name: Get Terragrunt Run Folder
+        id: terragrunt_folder
+        run: echo "::set-output name=name::$(grep -v '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | sort -n)"
+      - if: steps.terragrunt_num_envs.outputs.number <= 1
+        name: Terragrunt Validate
+        run: terragrunt run-all validate ${{ steps.terragrunt_folder.outputs.name }}
+      - if: steps.terragrunt_num_envs.outputs.number <= 1
+        name: Terragrunt Plan
+        id: terragrunt_plan
+        run: terragrunt run-all plan ${{ steps.terragrunt_folder.outputs.name }} -detailed-exitcode
