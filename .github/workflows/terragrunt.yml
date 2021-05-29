@@ -35,23 +35,23 @@ jobs:
 
       - name: Cat File Changes
         if: github.event_name == 'pull_request'
-        run: cat $HOME/files.csv | sed '/^\s*$/d'
+        run: cat $HOME/files.csv | sed 's/\,/\n/g' | sed '/^\s*$/d'
 
       - name: Get Terragrunt Run Folder
         if: github.event_name == 'pull_request'
         id: terragrunt_folder
-        run: echo "::set-output name=name::$(cat $HOME/files.csv | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-1 | uniq | sort -n)"
+        run: echo "::set-output name=name::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-1 | uniq | sort -n)"
 
       ### PULL REQUEST STEPS
       - name: Get Terragrunt Changed Environments Count
         if: github.event_name == 'pull_request'
         id: terragrunt_num_envs
-        run: echo "::set-output name=number::$(cat $HOME/files.csv | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-1 | uniq | wc -l)"
+        run: echo "::set-output name=number::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-1 | uniq | wc -l)"
 
       - name: Get Terragrunt Changed Regions Count
         if: github.event_name == 'pull_request'
         id: terragrunt_num_regions
-        run: echo "::set-output name=number::$(cat $HOME/files.csv | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-2 | uniq | wc -l)"
+        run: echo "::set-output name=number::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-2 | uniq | wc -l)"
 
       - name: Check if Terragrunt is running on multiple environments
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number > 1
