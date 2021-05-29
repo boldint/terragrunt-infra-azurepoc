@@ -33,6 +33,11 @@ jobs:
         with:
           fileOutput: ','
 
+      - name: Cat File Changes
+        if: github.event_name == 'pull_request'
+        id: terragrunt_folder
+        run: cat $HOME/files.csv | sed '/^\s*$/d'
+
       - name: Get Terragrunt Run Folder
         if: github.event_name == 'pull_request'
         id: terragrunt_folder
