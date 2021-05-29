@@ -1,43 +1,98 @@
 name: Terragrunt example workflow
 
 on:
+  pull-request:
+    branches:
+      - master
   push:
     branches:
-      - AP-1
+      - master
 
 jobs:
-  IaC:
-    name: Terragrunt Run
+  terragrunt_live_run:
+    name: Terragrunt Live Run
     runs-on: ubuntu-latest
     steps:
+      ### BASE STEPS
       - name: Checkout
         uses: actions/checkout@v2
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1.2.1
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:
           terragrunt_version: 0.28.4
-      - id: file_changes
+
+      - name: Check File Changes
+        id: file_changes
+        if: github.event_name == 'pull_request'
         uses: trilom/file-changes-action@v1.2.4
         with:
           fileOutput: ','
-      - name: Get Terragrunt Changed Environments
-        id: terragrunt_num_envs
-        run: echo "::set-output name=number::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | wc -l)"
-      - name: Get Terragrunt Changed Regions
-        id: terragrunt_num_regions
-        run: echo "::set-output name=number::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-2 | uniq | wc -l)"
+
       - name: Get Terragrunt Run Folder
+        if: github.event_name == 'pull_request'
         id: terragrunt_folder
         run: echo "::set-output name=name::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | sort -n)"
-      - if: steps.terragrunt_num_envs.outputs.number <= 1
-        name: Terragrunt Validate
+
+      ### PULL REQUEST STEPS
+      - name: Get Terragrunt Changed Environments Count
+        if: github.event_name == 'pull_request'
+        id: terragrunt_num_envs
+        run: echo "::set-output name=number::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-1 | uniq | wc -l)"
+
+      - name: Get Terragrunt Changed Regions Count
+        if: github.event_name == 'pull_request'
+        id: terragrunt_num_regions
+        run: echo "::set-output name=number::$(grep '.hcl' $HOME/files.csv | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | cut -d'/' -f-2 | uniq | wc -l)"
+
+      - name: Check if Terragrunt is running on multiple environments
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number > 1
+        uses: thollander/actions-comment-pull-request@1.0.1
+        with:
+          message: |
+            !! WARNING !!
+            The blast radius of the proposed changes is to big!
+            Changes will affect multiple environments!
+            Unless this is a new deployment from scratch, this
+            change might be dangerous!!!
+            Please review with caution! When in doubt, do not approve!
+
+      - name: Check if Terragrunt is running on root
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0
+        uses: thollander/actions-comment-pull-request@1.0.1
+        with:
+          message: |
+            !! WARNING !!
+            The blast radius of the proposed changes is to big!
+            Terragrunt running in the root golder!
+            Changes WILL affect the entire deployment / workflow!
+            Unless this is a new deployment from scratch, this
+            change might be dangerous!!!
+            Please review with caution! When in doubt, do not approve!
+
+      - name: Terragrunt Validate
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
         run: terragrunt run-all validate ${{ steps.terragrunt_folder.outputs.name }}
-      - if: steps.terragrunt_num_envs.outputs.number <= 1
-        name: Terragrunt Plan
+
+      - name: Terragrunt Plan
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
         id: terragrunt_plan
         run: terragrunt run-all plan ${{ steps.terragrunt_folder.outputs.name }} -detailed-exitcode
         continue-on-error: true
+
+      - name: Write Comment with Terragrunt Plan
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0
+        uses: thollander/actions-comment-pull-request@1.0.1
+        with:
+          message: ${{ steps.terragrunt_plan.outputs.stdout }}
+
+      ### MERGE/PUSH TO MASTER STEPS
+      - name: Terragrunt Apply
+        if: github.event_name == 'push'
+        id: terragrunt_apply
+        run: terragrunt run-all apply ${{ steps.terragrunt_folder.outputs.name }}
