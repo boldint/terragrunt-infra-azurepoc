@@ -33,14 +33,10 @@ jobs:
         with:
           fileOutput: ','
 
-      - name: Cat File Changes
-        if: github.event_name == 'pull_request'
-        run: cat $HOME/files.csv | sed 's/\,/\n/g' | sed '/^\s*$/d'
-
-      - name: Get Terragrunt Run Folder
-        if: github.event_name == 'pull_request'
-        id: terragrunt_folder
-        run: echo "::set-output name=name::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-1 | uniq | sort -n)"
+      #- name: Get Terragrunt Run Folder
+      #  if: github.event_name == 'pull_request'
+      #  id: terragrunt_folder
+      #  run: echo "::set-output name=name::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-2 | uniq | sort -n)"
 
       ### PULL REQUEST STEPS
       - name: Get Terragrunt Changed Environments Count
@@ -53,8 +49,22 @@ jobs:
         id: terragrunt_num_regions
         run: echo "::set-output name=number::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-2 | uniq | wc -l)"
 
+      - name: Terragrunt Validate
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        run: terragrunt run-all validate
+
+      - name: Terragrunt Plan
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        id: terragrunt_plan
+        run: terragrunt run-all plan -detailed-exitcode
+        continue-on-error: true
+
+      - name: Fail if Terragrunt Plan failed
+        if: github.event_name == 'pull_request' && steps.terragrunt_plan.outputs.exitcode == 1
+        run: exit 1
+
       - name: Check if Terragrunt is running on multiple environments
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number > 1
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number > 1 && steps.terragrunt_plan.outputs.exitcode == 2
         uses: thollander/actions-comment-pull-request@1.0.1
         with:
           message: |
@@ -66,27 +76,17 @@ jobs:
             Please review with caution! When in doubt, do not approve!
 
       - name: Check if Terragrunt is running on root
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0
+        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0 && steps.terragrunt_plan.outputs.exitcode == 2
         uses: thollander/actions-comment-pull-request@1.0.1
         with:
           message: |
             !! WARNING !!
             The blast radius of the proposed changes is to big!
-            Terragrunt running in the root golder!
+            Terragrunt running in the root folder!
             Changes WILL affect the entire deployment / workflow!
             Unless this is a new deployment from scratch, this
             change might be dangerous!!!
             Please review with caution! When in doubt, do not approve!
-
-      - name: Terragrunt Validate
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
-        run: terragrunt run-all validate ${{ steps.terragrunt_folder.outputs.name }}
-
-      - name: Terragrunt Plan
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
-        id: terragrunt_plan
-        run: terragrunt run-all plan ${{ steps.terragrunt_folder.outputs.name }} -detailed-exitcode
-        continue-on-error: true
 
       - name: Write Comment with Terragrunt Plan
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0
@@ -98,4 +98,4 @@ jobs:
       - name: Terragrunt Apply
         if: github.event_name == 'push'
         id: terragrunt_apply
-        run: terragrunt run-all apply ${{ steps.terragrunt_folder.outputs.name }}
+        run: terragrunt run-all apply

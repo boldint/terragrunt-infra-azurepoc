@@ -30,16 +30,12 @@ EOF
 locals {
   # Read all variables defined in parent folders!
   common_vars = read_terragrunt_config(find_in_parent_folders("common.hcl", "common.hcl"))
-  #from_bootstrap_vars = read_terragrunt_config(find_in_parent_folders("from_bootstrap.hcl", "from_bootstrap.hcl"))
 
   # Extract variables for easy access
   tfc_hostname      = local.common_vars.locals.tfc_hostname
   entity            = local.common_vars.locals.entity
   unit              = local.common_vars.locals.unit
   projectappservice = local.common_vars.locals.projectappservice
-  environment       = local.common_vars.locals.environment
-  location          = local.common_vars.locals.location
-  location_short    = local.common_vars.locals.location_short
 }
 
 generate "remote_state" {
@@ -51,7 +47,7 @@ terraform {
     hostname = "${local.tfc_hostname}"
     organization = "${local.entity}"
     workspaces {
-      name = "${local.environment}-${local.location}"
+      name = "${local.unit}-${local.projectappservice}-${replace(path_relative_to_include(), "/", "-")}"
     }
   }
 }

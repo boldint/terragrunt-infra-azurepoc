@@ -2,10 +2,9 @@
 # project, for purposes of consistency in naming and organization!
 locals {
   tfc_hostname      = "app.terraform.io"
-  entity            = "Boldint"
+  entity            = "Boldint-test"
+  entity_email      = "oscar.patricio@devoteam.com"
   unit              = "cd"
   projectappservice = "pociac"
-  location_short    = "weu" # West Europe
-  location          = "westeurope"
-  environment       = "sandbox"
+
 }
