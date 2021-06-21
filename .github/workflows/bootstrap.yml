@@ -27,10 +27,10 @@ jobs:
       - name: Construct Workspace names
         id: construct_ws_names
         run: |
-          for deployment in ${{ steps.get_deployments.outputs.deployments }}
-          do
-            echo "deployment: $deployment"
-          done
+          prepend="${{ steps.get_global_var.outputs.tfc_workspace_unit }}-${{ steps.get_global_var.outputs.tfc_workspace_projectappservice }}-"
+          array(${{ steps.get_deployments.outputs.deployments }})
+          array=( "${array[@]/#/$prepend}" )
+          echo "::set-output name=workspaces::${array[@]}"
 
       - name: Bootstrap
         id: bootstrap
