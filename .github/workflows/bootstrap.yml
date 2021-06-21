@@ -19,18 +19,23 @@ jobs:
           echo "::set-output name=tfc_workspace_projectappservice::$(grep -w "projectappservice"  common.hcl | cut -d'=' -f2 | tr -d '" ')"
 
       - name: Get deployments (location / environment)
+        # This step will calculate the deployments, based on the location of terragrunt.hcl
+        # files and will output them as white space separated string, with no leading or
+        # ending white spaces.
         id: get_deployments
         run: |
           deployments=$(dirname $(find . -type f -name terragrunt.hcl ! -path '*/.terragrunt-cache/*' ! -path './terragrunt.hcl') | cut -d/ -f2- | tr / - | tr '\n' ' ')
-          echo "::set-output name=deployments::$deployments"
+          echo "::set-output name=deployments::${deployments%?}"
 
       - name: Construct Workspace names
+        # This step will append the global naming prefix to the above returned deployments
+        # and output the full workspace names as a white space separated string.
         id: construct_ws_names
         run: |
           prepend="${{ steps.get_global_var.outputs.tfc_workspace_unit }}-${{ steps.get_global_var.outputs.tfc_workspace_projectappservice }}-"
-          array( ${{ steps.get_deployments.outputs.deployments }})
-          array=( "${array[@]/#/$prepend}" )
-          echo "::set-output name=workspaces::${array[@]}"
+          ws_array=(${{ steps.get_deployments.outputs.deployments }})
+          ws_array=( "${ws_array[@]/#/$prepend}" )
+          echo "::set-output name=workspaces::${ws_array[@]}"
 
       - name: Bootstrap
         id: bootstrap
