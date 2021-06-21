@@ -1,6 +1,12 @@
 name: Bootstrap action for Terraform Cloud
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      placeholder:
+        description: "Hold the place!"
+        required: true
+        default: "warning"
 
 jobs:
   bootstrap_tfc:
