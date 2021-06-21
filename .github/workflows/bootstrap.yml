@@ -21,7 +21,7 @@ jobs:
       - name: Get deployments (location / environment)
         id: get_deployments
         run: |
-          deployments=$(dirname $(find . -type f -name terragrunt.hcl ! -path '*/.terragrunt-cache/*' ! -path './terragrunt.hcl') | cut -d/ -f2- | tr / -)
+          deployments=$(dirname $(find . -type f -name terragrunt.hcl ! -path '*/.terragrunt-cache/*' ! -path './terragrunt.hcl') | cut -d/ -f2- | tr / - | tr '\n' ' ')
           echo "::set-output name=deployments::$deployments"
 
       - name: Construct Workspace names
