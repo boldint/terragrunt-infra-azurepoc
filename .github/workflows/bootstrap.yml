@@ -28,7 +28,7 @@ jobs:
         id: construct_ws_names
         run: |
           prepend="${{ steps.get_global_var.outputs.tfc_workspace_unit }}-${{ steps.get_global_var.outputs.tfc_workspace_projectappservice }}-"
-          array(${{ steps.get_deployments.outputs.deployments }})
+          array( ${{ steps.get_deployments.outputs.deployments }})
           array=( "${array[@]/#/$prepend}" )
           echo "::set-output name=workspaces::${array[@]}"
 
