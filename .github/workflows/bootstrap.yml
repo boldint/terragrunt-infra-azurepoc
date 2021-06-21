@@ -1,0 +1,40 @@
+name: Bootstrap action for Terraform Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Repo branch to checkout"
+        required: true
+        default: "master"
+
+jobs:
+  bootstrap_tfc:
+    name: Bootstrap TFC
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Set needed environment variables
+        id: set_env_var
+        run: |
+          echo "::set-output name=tfc_organization::$(grep -w entity common.hcl | cut -d'=' -f2 | tr -d '" ')"
+          echo "::set-output name=tfc_organization_email::$(grep -w entity_email common.hcl | cut -d'=' -f2 | tr -d '" ')"
+          echo "::set-output name=tfc_workspace_unit::$(grep -w unit common.hcl | cut -d'=' -f2 | tr -d '" ')"
+          echo "::set-output name=tfc_workspace_projectappservice::$(grep -w "projectappservice"  common.hcl | cut -d'=' -f2 | tr -d '" ')"
+#        run: |
+#          echo "tfc_organization=$(grep -w "entity"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
+#          echo "tfc_organization_email=$(grep -w "entity_email"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
+#          echo "tfc_workspace_unit=$(grep -w "unit"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
+#          echo "tfc_workspace_projectappservice=$(grep -w "projectappservice"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
+
+      - name: Bootstrap
+        id: bootstrap
+        run: |
+          echo "tfc_organization: {{ steps.set_env_var.outputs.tfc_organization }}"
+          echo "tfc_organization_email: {{ steps.set_env_var.outputs.tfc_organization_email }}"
+          echo "tfc_workspace_unit: {{ steps.set_env_var.outputs.tfc_workspace_unit }}"
+           echo "tfc_workspace_projectappservice: {{ steps.set_env_var.outputs.tfc_workspace_projectappservice }}"
