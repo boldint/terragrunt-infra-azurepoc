@@ -10,23 +10,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Set needed environment variables
-        id: set_env_var
+      - name: Get global variables
+        id: get_global_var
         run: |
           echo "::set-output name=tfc_organization::$(grep -w entity common.hcl | cut -d'=' -f2 | tr -d '" ')"
           echo "::set-output name=tfc_organization_email::$(grep -w entity_email common.hcl | cut -d'=' -f2 | tr -d '" ')"
           echo "::set-output name=tfc_workspace_unit::$(grep -w unit common.hcl | cut -d'=' -f2 | tr -d '" ')"
           echo "::set-output name=tfc_workspace_projectappservice::$(grep -w "projectappservice"  common.hcl | cut -d'=' -f2 | tr -d '" ')"
-#        run: |
-#          echo "tfc_organization=$(grep -w "entity"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
-#          echo "tfc_organization_email=$(grep -w "entity_email"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
-#          echo "tfc_workspace_unit=$(grep -w "unit"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
-#          echo "tfc_workspace_projectappservice=$(grep -w "projectappservice"  common.hcl | cut -d'=' -f2 | tr -d '" ')" >> $GITHUB_ENV
+
+      - name: Get deployments (location / environment)
+        id: get_deployments
+        run: |
+          dirname $(find . -type f -name terragrunt.hcl ! -path "*/.terragrunt-cache/*" ! -path "./terragrunt.hcl") | cut -d/ -f2- | tr / -
+
+      - name: Construct Workspace names
+        id: construct_ws_names
+        run: |
+          for deployment in ${{ steps.get_deployments.outputs.stdout }}
+          do
+            echo "deployment: $deployment"
+          done
 
       - name: Bootstrap
         id: bootstrap
         run: |
-          echo "tfc_organization: ${{ steps.set_env_var.outputs.tfc_organization }}"
-          echo "tfc_organization_email: ${{ steps.set_env_var.outputs.tfc_organization_email }}"
-          echo "tfc_workspace_unit: ${{ steps.set_env_var.outputs.tfc_workspace_unit }}"
-          echo "tfc_workspace_projectappservice: ${{ steps.set_env_var.outputs.tfc_workspace_projectappservice }}"
+          echo "Óráite!"
