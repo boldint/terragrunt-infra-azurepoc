@@ -1,12 +1,6 @@
 name: Bootstrap action for Terraform Cloud
 
-on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: "Repo branch to checkout"
-        required: true
-        default: "master"
+on: workflow_dispatch
 
 jobs:
   bootstrap_tfc:
@@ -15,8 +9,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.inputs.branch }}
 
       - name: Set needed environment variables
         id: set_env_var
