@@ -39,5 +39,9 @@ jobs:
 
       - name: Bootstrap
         id: bootstrap
-        run: |
-          echo "Óráite!"
+        uses: boldint/tfc-org-setup-action@AP-1
+        with:
+          organization: ${{ steps.get_global_var.outputs.tfc_organization }}
+          organization_email: ${{ steps.get_global_var.outputs.tfc_organization_email }}
+          workspaces: ${{ steps.construct_ws_names.outputs.workspaces }}
+          token: ${{ secrets.TF_API_TOKEN }}
