@@ -26,7 +26,7 @@ jobs:
       - name: Bootstrap
         id: bootstrap
         run: |
-          echo "tfc_organization: {{ steps.set_env_var.outputs.tfc_organization }}"
-          echo "tfc_organization_email: {{ steps.set_env_var.outputs.tfc_organization_email }}"
-          echo "tfc_workspace_unit: {{ steps.set_env_var.outputs.tfc_workspace_unit }}"
-           echo "tfc_workspace_projectappservice: {{ steps.set_env_var.outputs.tfc_workspace_projectappservice }}"
+          echo "tfc_organization: ${{ steps.set_env_var.outputs.tfc_organization }}"
+          echo "tfc_organization_email: ${{ steps.set_env_var.outputs.tfc_organization_email }}"
+          echo "tfc_workspace_unit: ${{ steps.set_env_var.outputs.tfc_workspace_unit }}"
+          echo "tfc_workspace_projectappservice: ${{ steps.set_env_var.outputs.tfc_workspace_projectappservice }}"
