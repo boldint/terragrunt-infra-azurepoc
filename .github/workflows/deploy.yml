@@ -26,6 +26,7 @@ jobs:
         uses: hashicorp/setup-terraform@v1.3.2
         with:
           terraform_version: ~1.0.0
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
