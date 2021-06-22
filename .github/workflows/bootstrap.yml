@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-
+        
       - name: Get global variables
         id: get_global_var
         run: |
