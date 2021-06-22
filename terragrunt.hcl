@@ -53,3 +53,7 @@ terraform {
 }
 EOF
 }
+
+inputs = merge(
+  local.common_vars.locals,
+)
