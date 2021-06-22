@@ -55,11 +55,13 @@ jobs:
         run: echo "::set-output name=number::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-2 | uniq | wc -l)"
 
       - name: Terragrunt Validate
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        #if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        if: github.event_name == 'pull_request'
         run: terragrunt run-all validate
 
       - name: Terragrunt Plan
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        #if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        if: github.event_name == 'pull_request'
         id: terragrunt_plan
         run: terragrunt run-all plan -detailed-exitcode
         continue-on-error: true
