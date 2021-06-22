@@ -13,24 +13,25 @@ jobs:
     name: Terragrunt Live Run
     runs-on: ubuntu-latest
     env:
-      ARM_CLIENT_ID: ${{ secret.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET: ${{ secret.ARM_CLIENT_SECRET }}
-      ARM_SUBSCRIPTION_ID: ${{ secret.ARM_SUBSCRIPTION_ID }}
-      ARM_TENANT_ID: ${{ secret.ARM_TENANT_ID }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
     steps:
       ### BASE STEPS
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1.3
+        uses: hashicorp/setup-terraform@v1.3.2
         with:
           terraform_version: ~1.0.0
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
 
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
         with:
-          terragrunt_version: 0.28.4
+          terragrunt_version: 0.30.7
 
       - name: Check File Changes
         id: file_changes
@@ -55,11 +56,13 @@ jobs:
         run: echo "::set-output name=number::$(cat $HOME/files.csv | sed 's/\,/\n/g' | grep '.hcl' | awk -F '/' 'BEGIN {OFS = FS};NF{--NF};1' | sed '/^\s*$/d' | cut -d'/' -f-2 | uniq | wc -l)"
 
       - name: Terragrunt Validate
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        #if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        if: github.event_name == 'pull_request'
         run: terragrunt run-all validate
 
       - name: Terragrunt Plan
-        if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        #if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number <= 1
+        if: github.event_name == 'pull_request'
         id: terragrunt_plan
         run: terragrunt run-all plan -detailed-exitcode
         continue-on-error: true
@@ -70,9 +73,9 @@ jobs:
 
       - name: Check if Terragrunt is running on multiple environments
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number > 1 && steps.terragrunt_plan.outputs.exitcode == 2
-        uses: thollander/actions-comment-pull-request@1.0.1
+        uses: peter-evans/commit-comment@v1.3.2
         with:
-          message: |
+          body: |
             !! WARNING !!
             The blast radius of the proposed changes is to big!
             Changes will affect multiple environments!
@@ -82,9 +85,9 @@ jobs:
 
       - name: Check if Terragrunt is running on root
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0 && steps.terragrunt_plan.outputs.exitcode == 2
-        uses: thollander/actions-comment-pull-request@1.0.1
+        uses: peter-evans/commit-comment@v1.3.2
         with:
-          message: |
+          body: |
             !! WARNING !!
             The blast radius of the proposed changes is to big!
             Terragrunt running in the root folder!
@@ -95,9 +98,10 @@ jobs:
 
       - name: Write Comment with Terragrunt Plan
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0
-        uses: thollander/actions-comment-pull-request@1.0.1
+        uses: peter-evans/commit-comment@v1.3.2
         with:
-          message: ${{ steps.terragrunt_plan.outputs.stdout }}
+          body: |
+            ${{ steps.terragrunt_plan.outputs.stdout }}
 
       ### MERGE/PUSH TO MASTER STEPS
       - name: Terragrunt Apply
