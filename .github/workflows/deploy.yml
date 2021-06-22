@@ -12,15 +12,20 @@ jobs:
   terragrunt_live_run:
     name: Terragrunt Live Run
     runs-on: ubuntu-latest
+    env:
+      ARM_CLIENT_ID: ${{ secret.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secret.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secret.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secret.ARM_TENANT_ID }}
     steps:
       ### BASE STEPS
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1.2.1
+        uses: hashicorp/setup-terraform@v1.3
         with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+          terraform_version: ~1.0.0
 
       - name: Setup Terragrunt
         uses: autero1/action-terragrunt@v1.1.0
