@@ -73,9 +73,9 @@ jobs:
 
       - name: Check if Terragrunt is running on multiple environments
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number > 1 && steps.terragrunt_plan.outputs.exitcode == 2
-        uses: thollander/actions-comment-pull-request@1.0.1
+        uses: peter-evans/commit-comment@v1.3.2
         with:
-          message: |
+          body: |
             !! WARNING !!
             The blast radius of the proposed changes is to big!
             Changes will affect multiple environments!
@@ -85,9 +85,9 @@ jobs:
 
       - name: Check if Terragrunt is running on root
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0 && steps.terragrunt_plan.outputs.exitcode == 2
-        uses: thollander/actions-comment-pull-request@1.0.1
+        uses: peter-evans/commit-comment@v1.3.2
         with:
-          message: |
+          body: |
             !! WARNING !!
             The blast radius of the proposed changes is to big!
             Terragrunt running in the root folder!
@@ -98,9 +98,10 @@ jobs:
 
       - name: Write Comment with Terragrunt Plan
         if: github.event_name == 'pull_request' && steps.terragrunt_num_envs.outputs.number == 0
-        uses: thollander/actions-comment-pull-request@1.0.1
+        uses: peter-evans/commit-comment@v1.3.2
         with:
-          message: ${{ steps.terragrunt_plan.outputs.stdout }}
+          body: |
+            ${{ steps.terragrunt_plan.outputs.stdout }}
 
       ### MERGE/PUSH TO MASTER STEPS
       - name: Terragrunt Apply
