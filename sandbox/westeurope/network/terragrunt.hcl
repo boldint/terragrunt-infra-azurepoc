@@ -27,15 +27,6 @@ locals {
 # Check the above referenced code and the Bold terraform modules documentation to
 # validate which variables may be passed!
 inputs = {
-  location = "${split("/", path_relative_to_include())[2]}"
-}
-
-generate "tfvars" {
-  path              = "terragrunt.auto.tfvars"
-  if_exists         = "overwrite"
-  disable_signature = true
-  contents          = <<EOF
-resource_group_name = "${local.common_vars.locals.projectappservice}"
-
-EOF
+  location            = "${split("/", path_relative_to_include())[1]}"
+  resource_group_name = "${local.common_vars.locals.projectappservice}"
 }
